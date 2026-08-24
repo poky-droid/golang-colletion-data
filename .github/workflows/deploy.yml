@@ -16,9 +16,9 @@ jobs:
       - name: Check Environment
         run: |
           echo "RUNNER BERHASIL"
-          whoami
-          hostname
-          pwd
+          echo "User: $(whoami)"
+          echo "Hostname: $(hostname)"
+          echo "Working Directory: $(pwd)"
           go version
 
       - name: Build Go Application
@@ -29,3 +29,18 @@ jobs:
         run: |
           ls -lh matrix-api
           file matrix-api
+
+      - name: Deploy Binary
+        run: |
+          mkdir -p /home/abdad21/matrix-api
+          cp matrix-api /home/abdad21/matrix-api/matrix-api
+          chmod +x /home/abdad21/matrix-api/matrix-api
+
+      - name: Restart Go API
+        run: |
+          sudo systemctl restart matrix-api
+          sudo systemctl status matrix-api --no-pager
+
+      - name: Check API Service
+        run: |
+          systemctl is-active matrix-api
