@@ -18,7 +18,11 @@ func main() {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://dasboard-nine-gamma.vercel.app"},
+		AllowOriginFunc: func(origin string) bool {
+			allowed := origin == "https://dasboard-nine-gamma.vercel.app"
+			println("CORS check -> origin diterima: ["+origin+"] | panjang:", len(origin), "| diizinkan:", allowed)
+			return allowed
+		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		AllowCredentials: true,
