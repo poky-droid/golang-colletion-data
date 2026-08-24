@@ -53,7 +53,7 @@ func GetMatrixs() Matrixs {
 	}
 }
 
-// GetNetworkStats parsing manual dari `netstat -ib`, berdasarkan nama kolom
+// GetNetworkStats parsing manual dari `netstat -ib`, berdasarkan
 // (bukan index tetap) supaya aman dari bug parsing gopsutil di macOS.
 func GetNetworkStats() (float64, float64) {
 	out, err := exec.Command("netstat", "-ib").Output()
