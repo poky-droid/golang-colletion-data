@@ -1,4 +1,4 @@
-name: modulAbdad
+name: Deploy Go API
 
 on:
   push:
@@ -10,22 +10,13 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout source code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build Matrix API
+      - name: Build Go application
         run: |
           go build -o matrix-api .
 
-      - name: Deploy binary
+      - name: Deploy
         run: |
-          sudo cp matrix-api /opt/matrix-api/matrix-api
-          sudo chmod +x /opt/matrix-api/matrix-api
-
-      - name: Restart Matrix API
-        run: |
-          sudo systemctl restart matrix-api
-
-      - name: Check Matrix API
-        run: |
-          sudo systemctl is-active matrix-api
+          cp matrix-api /home/abdad21/matrix-api/matrix-api
