@@ -46,19 +46,25 @@ jobs:
           ls -lh matrix-api
           file matrix-api
 
-      # 7. Deploy binary ke folder aplikasi
+      # 7. Stop service sebelum replace binary (hindari "Text file busy")
+      - name: Stop Go API
+        run: |
+          sudo systemctl stop matrix-api || true
+
+      # 8. Deploy binary ke folder aplikasi
       - name: Deploy Binary
         run: |
           mkdir -p /home/abdad21/matrix-api
-          cp matrix-api /home/abdad21/matrix-api/matrix-api
+          cp matrix-api /home/abdad21/matrix-api/matrix-api.new
+          mv /home/abdad21/matrix-api/matrix-api.new /home/abdad21/matrix-api/matrix-api
           chmod +x /home/abdad21/matrix-api/matrix-api
 
-      # 8. Restart service
+      # 9. Start service
       - name: Restart Go API
         run: |
-          sudo systemctl restart matrix-api
+          sudo systemctl start matrix-api
 
-      # 9. Cek service
+      # 10. Cek service
       - name: Check API Service
         run: |
           systemctl status matrix-api --no-pager
