@@ -1,4 +1,4 @@
-name: Test Runner
+name: Deploy Go API
 
 on:
   push:
@@ -6,13 +6,26 @@ on:
       - main
 
 jobs:
-  test:
+  deploy:
     runs-on: self-hosted
 
     steps:
-      - name: Test Runner
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Check Environment
         run: |
           echo "RUNNER BERHASIL"
           whoami
           hostname
           pwd
+          go version
+
+      - name: Build Go Application
+        run: |
+          go build -o matrix-api .
+
+      - name: Check Binary
+        run: |
+          ls -lh matrix-api
+          file matrix-api
