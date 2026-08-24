@@ -2,7 +2,7 @@ package main
 
 import (
 	"bufio"
-	"os/exec"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -56,50 +56,55 @@ func GetMatrixs() Matrixs {
 // GetNetworkStats parsing manual dari `netstat -ib`, berdasarkan
 // (bukan index tetap) supaya aman dari bug parsing gopsutil di macOS.
 func GetNetworkStats() (float64, float64) {
-	out, err := exec.Command("netstat", "-ib").Output()
+	file, err := os.Open("/proc/net/dev")
 	if err != nil {
-		println("netstat error:", err.Error())
+		println("error opening /proc/net/dev:", err.Error())
 		return 0, 0
 	}
+	defer file.Close()
 
-	scanner := bufio.NewScanner(strings.NewReader(string(out)))
-	var header []string
+	scanner := bufio.NewScanner(file)
 	var netIn, netOut float64
-	seen := map[string]bool{}
+	lineNum := 0
 
 	for scanner.Scan() {
-		fields := strings.Fields(scanner.Text())
-		if len(fields) == 0 {
+		lineNum++
+		// 2 baris pertama adalah header, skip
+		if lineNum <= 2 {
 			continue
 		}
 
-		if header == nil {
-			header = fields
+		line := scanner.Text()
+		parts := strings.SplitN(line, ":", 2)
+		if len(parts) != 2 {
 			continue
 		}
 
-		if len(fields) < len(header) {
+		iface := strings.TrimSpace(parts[0])
+		// skip loopback interface
+		if iface == "lo" {
 			continue
 		}
 
-		iface := fields[0]
-		if iface == "lo0" || seen[iface] {
-			continue
-		}
-		seen[iface] = true
-
-		ibytesIdx := indexOf(header, "Ibytes")
-		obytesIdx := indexOf(header, "Obytes")
-		if ibytesIdx == -1 || obytesIdx == -1 {
+		fields := strings.Fields(parts[1])
+		if len(fields) < 9 {
 			continue
 		}
 
-		if ib, err := strconv.ParseFloat(fields[ibytesIdx], 64); err == nil {
+		// Format /proc/net/dev per interface:
+		// bytes packets errs drop fifo frame compressed multicast | bytes packets errs drop fifo colls carrier compressed
+		// index 0 = Ibytes (RX), index 8 = Obytes (TX)
+		if ib, err := strconv.ParseFloat(fields[0], 64); err == nil {
 			netIn += ib
 		}
-		if ob, err := strconv.ParseFloat(fields[obytesIdx], 64); err == nil {
+		if ob, err := strconv.ParseFloat(fields[8], 64); err == nil {
 			netOut += ob
 		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		println("error reading /proc/net/dev:", err.Error())
+		return 0, 0
 	}
 
 	return netIn, netOut
