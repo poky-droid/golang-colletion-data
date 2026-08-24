@@ -1,4 +1,4 @@
-name: Test Self Hosted Runner
+name: Test Runner
 
 on:
   push:
@@ -12,8 +12,7 @@ jobs:
     steps:
       - name: Test Runner
         run: |
-          echo "Runner berhasil!"
+          echo "RUNNER BERHASIL"
           whoami
           hostname
           pwd
-          uname -a
