@@ -1,46 +1,65 @@
 name: Deploy Go API
-
 on:
   push:
     branches:
       - main
-
 jobs:
   deploy:
     runs-on: self-hosted
-
     steps:
+      # 1. Ambil source code dari repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # 2. Install/setup Go untuk workflow
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      # 3. Cek environment
       - name: Check Environment
         run: |
-          echo "RUNNER BERHASIL"
+          echo "=== RUNNER BERHASIL ==="
           echo "User: $(whoami)"
           echo "Hostname: $(hostname)"
           echo "Working Directory: $(pwd)"
+          echo "Go Version:"
           go version
+          echo "Go Location:"
+          which go
 
+      # 4. Download dependency
+      - name: Download Dependencies
+        run: |
+          go mod download
+
+      # 5. Build aplikasi Go
       - name: Build Go Application
         run: |
           go build -o matrix-api .
 
+      # 6. Cek binary
       - name: Check Binary
         run: |
           ls -lh matrix-api
           file matrix-api
 
+      # 7. Deploy binary ke folder aplikasi
       - name: Deploy Binary
         run: |
           mkdir -p /home/abdad21/matrix-api
           cp matrix-api /home/abdad21/matrix-api/matrix-api
           chmod +x /home/abdad21/matrix-api/matrix-api
 
+      # 8. Restart service
       - name: Restart Go API
         run: |
           sudo systemctl restart matrix-api
-          sudo systemctl status matrix-api --no-pager
 
+      # 9. Cek service
       - name: Check API Service
         run: |
+          systemctl status matrix-api --no-pager
           systemctl is-active matrix-api
